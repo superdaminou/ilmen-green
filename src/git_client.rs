@@ -1,5 +1,8 @@
+
 use reqwest::header::HeaderMap;
 use serde::de::DeserializeOwned;
+
+use crate::{git_structs::{Artifacts, Cache, Repository, Workflows}, rapport::{Rapport, RapportWorfkows}};
 
 const BASE_URL : &str = "https://api.github.com/repos";
 
@@ -34,7 +37,34 @@ impl GitClient {
             .json::<T>()
             .unwrap()
     }
+
+    pub fn rapport(&self) -> Rapport {
+        let repository : Repository = self.get(GitAction::REPO);
+        let artifacts : Artifacts = self.get(GitAction::ARTIFACTS);
+        let workflows : Workflows = self.get(GitAction::WORKFLOWS);
+        let cache : Cache = self.get(GitAction::CACHE);
+
+
+        let kbytes_totale_stocke = ((repository.size * 1024) + (cache.active_caches_count * cache.active_caches_size_in_bytes) + artifacts.taille_totale()) as f32 / 1000000.0;
+
+        let taux = if workflows.total() > 0  {workflows.nombre_succes() as f32 * 100.0 / workflows.total() as f32} else {100.0};
+
+        Rapport {
+            repo_name: self.repo.clone(),
+            stockage_total: kbytes_totale_stocke,
+            taille_repository: repository.size as f32 / 1000.0,
+            total_artifacts: artifacts.taille_totale() as f32 / 1000000.0,
+            total_cache: cache.active_caches_count * cache.active_caches_size_in_bytes,
+            rapport_workflows: RapportWorfkows {
+                total: workflows.total(),
+                echoue: workflows.nombre_echec(),
+                reussi: workflows.nombre_succes(),
+                taux
+            }
+        }
+    }
 }
+
 
 
 pub enum GitAction {
