@@ -22,13 +22,13 @@ pub struct Artifact {
 
 #[derive(Deserialize, Debug)]
 pub struct Workflows{
-    total_count: usize,
+    total_count: Option<usize>,
     workflow_runs: Vec<Workflow>
 }
 
 impl Workflows {
     pub fn total(&self) -> usize {
-        self.total_count
+        self.total_count.unwrap_or_default()
     }
 
     pub fn nombre_succes(&self) -> usize {
@@ -40,7 +40,7 @@ impl Workflows {
     }
 
     fn nombre_conclusion(&self, conclusion: Conclusion) -> usize{
-        self.workflow_runs.iter().filter(|w| w.conclusion.eq(&conclusion.to_string())).collect::<Vec<_>>().len()
+        self.workflow_runs.iter().filter(|w| w.conclusion.as_ref().is_some_and(|c|c.eq(&conclusion.to_string()))).collect::<Vec<_>>().len()
     }
 }
 
@@ -62,7 +62,7 @@ impl ToString for Conclusion {
 #[derive(Deserialize, Debug)]
 pub struct Workflow {
     pub status: String,
-    pub conclusion: String
+    pub conclusion: Option<String>
 }
 
 

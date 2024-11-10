@@ -1,4 +1,5 @@
 
+use log::info;
 use reqwest::header::HeaderMap;
 use serde::de::DeserializeOwned;
 
@@ -23,10 +24,13 @@ impl GitClient {
         }
     }
 
+    
+
     pub fn get<T: DeserializeOwned>(&self, action: GitAction) -> T {
         let mut headers= HeaderMap::new();
         headers.insert("user-agent","CUSTOM_NAME/1.0".parse().unwrap());
 
+        info!("Getting {}", format!("{}/{}/{}{}", BASE_URL, self.owner, self.repo,  action.path()));
         self.client_http.get(format!("{}/{}/{}{}", BASE_URL, self.owner, self.repo,  action.path()))
             .headers(headers.clone())
             .bearer_auth(self.token.clone())
@@ -54,7 +58,7 @@ impl GitClient {
             stockage_total: kbytes_totale_stocke,
             taille_repository: repository.size as f32 / 1000.0,
             total_artifacts: artifacts.taille_totale() as f32 / 1000000.0,
-            total_cache: cache.active_caches_count * cache.active_caches_size_in_bytes,
+            total_cache: cache.active_caches_size_in_bytes as f32 / 1000000.0,
             rapport_workflows: RapportWorfkows {
                 total: workflows.total(),
                 echoue: workflows.nombre_echec(),

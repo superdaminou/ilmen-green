@@ -3,6 +3,8 @@ use ilmen_green::git_client::GitClient;
 
 fn main() {
     dotenv().ok();
+    env_logger::init();
+
     let git_client = GitClient::new(
         reqwest::blocking::Client::new(),
         std::env::var("REPO").expect("MISSING REPO"), 
@@ -10,7 +12,6 @@ fn main() {
         std::env::var("TOKEN").expect("MISSING TOKEN"));
 
     let rapport = git_client.rapport();
-
     println!("{}",rapport.to_string());
 }
 
