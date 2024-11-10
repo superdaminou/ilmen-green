@@ -527,10 +527,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "ilmen-eco"
+name = "ilmen-green"
 version = "0.1.0"
 dependencies = [
  "dotenv",
+ "log",
  "reqwest",
  "serde",
  "tokio",

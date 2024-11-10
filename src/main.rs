@@ -1,85 +1,36 @@
-use reqwest::header::HeaderMap;
-use serde::Deserialize;
+use git_client::{GitAction, GitClient};
+use git_structs::{Artifacts, Cache, Repository, Workflows};
 use dotenv::dotenv;
+
+mod git_client;
+mod git_structs;
 
 fn main() {
     dotenv().ok();
 
-    let owner = std::env::var("OWNER").expect("MISSING OWNER");
-    let repo = std::env::var("REPO").expect("MISSING REPO");
-    let token = std::env::var("TOKEN").expect("MISSING TOKEN");
-    let base_url = "https://api.github.com/repos";
+    let git_client = GitClient::new(
+        reqwest::blocking::Client::new(),
+        std::env::var("REPO").expect("MISSING REPO"), 
+        std::env::var("OWNER").expect("MISSING OWNER"),
+        std::env::var("TOKEN").expect("MISSING TOKEN"));
 
-    let client = reqwest::blocking::Client::new();
-
-    let mut headers= HeaderMap::new();
-    headers.insert("user-agent","CUSTOM_NAME/1.0".parse().unwrap());
-
-    let repo = client.get(format!("{}/{}/{}",base_url, owner, repo))
-        .headers(headers.clone())
-        .bearer_auth(token.clone())
-        .send()
-        .unwrap()
-        .json::<Repository>()
-        .unwrap()
-        .size;
-
-    println!("Taille du projet {repo:#?}Kb");
-
-    let taille_artifacts = client.get(format!("{}/{}/{}/actions/artifacts",base_url, owner, repo))
-        .headers(headers.clone())
-        .bearer_auth(token.clone())
-        .send()
-        .unwrap()
-        .json::<Artifacts>()
-        .unwrap()
-        .artifacts
-        .iter()
-        .map(|arti| arti.size_in_bytes)
-        .reduce(|acc, e| acc + e)
-        .map(|b|b as f32 / 1024.0)
-        .unwrap_or_default();
-    println!("Tailles artifacts {taille_artifacts:#?}Kb");
+    let repository : Repository = git_client.get(GitAction::REPO);
+    let artifacts : Artifacts = git_client.get(GitAction::ARTIFACTS);
+    let workflows : Workflows = git_client.get(GitAction::WORKFLOWS);
+    let cache : Cache = git_client.get(GitAction::CACHE);
 
 
-    let workflows = client.get(format!("{}/{}/{}/actions/runs", base_url, owner, repo))
-        .headers(headers.clone())
-        .bearer_auth(token.clone())
-        .send()
-        .unwrap()
-        .json::<Workflows>()
-        .unwrap();
+    let kbytes_totale_stocke = ((repository.size * 1024) + (cache.active_caches_count * cache.active_caches_size_in_bytes) + artifacts.taille_totale()) as f32 / 1000000.0;
 
-    let total = workflows.total_count;
-    let workflow_reussi = workflows.workflow_runs.iter().filter(|w| w.conclusion.eq("success")).collect::<Vec<_>>().len();
-    let taux = workflow_reussi * 100  / total;
-    println!("{workflow_reussi} workflow reussi sur  {total:#?}. Pourcentage {taux}");
+    let taux = if workflows.total() > 0  {workflows.nombre_succes() * 100 / workflows.total()} else {100};
+
+    println!("Stockage total pour repository {}Mbytes", kbytes_totale_stocke);
+    println!("Taille du projet {}Mb", repository.size as f32 / 1000.0);
+    println!("Total artifacts: {}Mb", artifacts.taille_totale() as f32 / 1000000.0);
+    println!("Total cache: {}", cache.active_caches_count * cache.active_caches_size_in_bytes);
+    println!("Total Workflows: {}", workflows.total());
+    println!("  Worflows Reussis: {}", workflows.nombre_succes());
+    println!("  Worflows Echoué: {}", workflows.nombre_echec());
+    println!("  Pourcentage de réussite: {taux}");
 }
 
-#[derive(Deserialize, Debug)]
-struct Artifacts{
-    pub artifacts: Vec<Artifact>
-}
-
-#[derive(Deserialize, Debug)]
-struct Artifact {
-    size_in_bytes: i32
-}
-
-#[derive(Deserialize, Debug)]
-struct Workflows{
-    total_count: usize,
-    workflow_runs: Vec<Workflow>
-}
-
-#[derive(Deserialize, Debug)]
-struct Workflow {
-    status: String,
-    conclusion: String
-}
-
-
-#[derive(Deserialize, Debug)]
-struct Repository {
-    size: i32
-}
