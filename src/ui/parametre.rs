@@ -1,5 +1,4 @@
-use log::info;
-use ratatui::{crossterm::{event::{self, KeyCode, KeyEvent, KeyEventKind}, style::Color}, layout::{Constraint, Direction, Layout}, style::Stylize, widgets::{Block, Paragraph, StatefulWidget, Widget}};
+use ratatui::{crossterm::event::{KeyCode, KeyEvent}, layout::{Constraint, Direction, Layout}, widgets::{Block, Paragraph, StatefulWidget, Widget}};
 
 
 #[derive(Debug, Default)]
@@ -8,14 +7,24 @@ pub struct ParametresUi {
     repositoty: String
 }
 
-#[derive(Default)]
+#[derive(Default,Debug)]
 pub struct EtatParametre {
     pub owner: String,
     pub repository: String,
     pub selected: ParametreInput 
 }
 
-#[derive(Default)]
+
+impl EtatParametre {
+    pub fn new(owner: &String, repo: &String) -> EtatParametre {
+        EtatParametre {
+            owner: owner.clone(),
+            repository: repo.clone(),
+            ..Default::default()
+        }
+    }
+}
+#[derive(Default, Debug)]
 enum ParametreInput {
     #[default]
     OWNER,

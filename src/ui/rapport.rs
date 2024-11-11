@@ -1,8 +1,8 @@
-use ratatui::{crossterm::event::{KeyCode, KeyEvent}, style::Stylize, symbols::border, text::{Line, Text}, widgets::{Block, Paragraph, StatefulWidget, Widget}};
+use ratatui::{crossterm::event::{KeyCode, KeyEvent}, style::Stylize, text::Text, widgets::{Paragraph, StatefulWidget, Widget}};
 
-use crate::{git::git_client::GitClient, rapport::{self, Rapport}};
+use crate::rapport::{Rapport};
 
-use super::{app::EtatGlobal, parametre::EtatParametre};
+use super::app::EtatGlobal;
 
 
 #[derive(Debug, Default, Clone)]
@@ -25,10 +25,7 @@ impl StatefulWidget for RapportUi {
 
 impl RapportUi {
     pub fn handle_key_event(key_event: KeyEvent, state: &mut EtatGlobal) {
-        match key_event.code {
-            KeyCode::Enter => generer_rapport(),
-            _ => {}
-        };
+        if key_event.code == KeyCode::Enter { generer_rapport() };
     }
 }
 

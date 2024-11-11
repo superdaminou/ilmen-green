@@ -19,16 +19,14 @@ pub struct GitClient {
 }
 
 impl GitClient {
-    pub fn new(client: reqwest::blocking::Client, repo: String, owner: String, token: String) -> GitClient {
+    pub fn new(client: reqwest::blocking::Client, repo: &String, owner: &String, token: &String) -> GitClient {
         GitClient {
             client_http: client,
-            owner,
-            repo,
-            token
+            owner: owner.clone(),
+            repo: repo.clone(),
+            token: token.clone()
         }
     }
-
-    
 
     pub fn get<T: DeserializeOwned>(&self, action: GitAction) -> T {
         let mut headers= HeaderMap::new();
@@ -46,7 +44,9 @@ impl GitClient {
             .unwrap()
     }
 
-    pub fn rapport(&self) -> Rapport {
+    pub fn rapport(&mut self, owner: &String, repo: &String) -> Rapport {
+        self.owner = owner.clone();
+        self.repo = repo.clone();
         let repository : Repository = self.get(GitAction::REPO);
         let artifacts : Artifacts = self.get(GitAction::ARTIFACTS);
         let workflows : Workflows = self.get(GitAction::WORKFLOWS);
@@ -72,9 +72,6 @@ impl GitClient {
         }
     }
 }
-
-
-
 pub enum GitAction {
     REPO,
     ARTIFACTS,
