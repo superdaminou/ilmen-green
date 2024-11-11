@@ -3,7 +3,10 @@ use log::info;
 use reqwest::header::HeaderMap;
 use serde::de::DeserializeOwned;
 
-use crate::{git_structs::{Artifacts, Cache, Repository, Workflows}, rapport::{Rapport, RapportWorfkows}};
+use crate::rapport::{Rapport, RapportWorfkows};
+
+use super::git_structs::{Artifacts, Cache, Repository, Workflows};
+
 
 const BASE_URL : &str = "https://api.github.com/repos";
 

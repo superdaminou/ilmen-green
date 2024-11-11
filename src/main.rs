@@ -1,17 +1,18 @@
+use std::io;
 use dotenv::dotenv;
-use ilmen_green::git_client::GitClient;
+use ui::app::App;
 
-fn main() {
+mod ui;
+mod git;
+mod rapport;
+
+
+fn main() -> io::Result<()>{
     dotenv().ok();
-    env_logger::init();
+    //env_logger::init();
 
-    let git_client = GitClient::new(
-        reqwest::blocking::Client::new(),
-        std::env::var("REPO").expect("MISSING REPO"), 
-        std::env::var("OWNER").expect("MISSING OWNER"),
-        std::env::var("TOKEN").expect("MISSING TOKEN"));
-
-    let rapport = git_client.rapport();
-    println!("{}",rapport.to_string());
+    let mut terminal = ratatui::init();
+    let app_result = App::default().run(&mut terminal);
+    ratatui::restore();
+    app_result
 }
-

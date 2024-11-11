@@ -1,3 +1,3 @@
-pub mod git_client;
-mod git_structs;
+pub mod git;
 mod rapport;
+mod ui;

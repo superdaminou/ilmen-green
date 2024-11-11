@@ -1,4 +1,5 @@
 
+#[derive(Debug, Default)]
 pub struct Rapport {
     pub repo_name: String,
     pub taille_repository: f32,
@@ -21,6 +22,7 @@ impl ToString for  Rapport {
     }
 }
 
+#[derive(Debug, Default)]
 pub struct RapportWorfkows {
     pub total: usize,
     pub reussi: usize,
