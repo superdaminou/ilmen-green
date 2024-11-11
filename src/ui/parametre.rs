@@ -1,8 +1,6 @@
-use std::fmt::format;
+use log::info;
+use ratatui::{crossterm::{event::{self, KeyCode, KeyEvent, KeyEventKind}, style::Color}, layout::{Constraint, Direction, Layout}, style::Stylize, widgets::{Block, Paragraph, StatefulWidget, Widget}};
 
-use ratatui::widgets::{Paragraph, StatefulWidget, Widget};
-
-use super::app::AppState;
 
 #[derive(Debug, Default)]
 pub struct ParametresUi {
@@ -10,13 +8,75 @@ pub struct ParametresUi {
     repositoty: String
 }
 
+#[derive(Default)]
+pub struct EtatParametre {
+    pub owner: String,
+    pub repository: String,
+    pub selected: ParametreInput 
+}
+
+#[derive(Default)]
+enum ParametreInput {
+    #[default]
+    OWNER,
+    REPO
+}
+
 
 impl StatefulWidget for ParametresUi {
-    type State = AppState;
+    type State = EtatParametre;
     
     fn render(self, area: ratatui::prelude::Rect, buf: &mut ratatui::prelude::Buffer, state: &mut Self::State) {
-        Paragraph::new(format!("{}{}", state.owner, state.rapport.repo_name)).render(area, buf);
+        let layout = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints(vec![
+                Constraint::Percentage(50),
+                Constraint::Percentage(50),
+            ])
+            .split(area);
+
+        match state.selected {
+            ParametreInput::OWNER => {
+                Paragraph::new(format!("Owner: {}", state.owner)).block(Block::bordered()).render(layout[0], buf);
+                Paragraph::new(format!("Repository:  {}", state.repository)).render(layout[1], buf);
+            },
+            ParametreInput::REPO => {
+                Paragraph::new(format!("Owner: {}", state.owner)).render(layout[0], buf);
+                Paragraph::new(format!("Repository:  {}", state.repository)).block(Block::bordered()).render(layout[1], buf);
+            },
+        }
+        
     }
-    
-    
+}
+
+impl ParametresUi {    
+    pub fn handle_key_event(key_event: KeyEvent, state: &mut EtatParametre) {
+        match key_event.code {
+            KeyCode::Char(to_insert) => insert(to_insert, state), 
+            KeyCode::Backspace => delete(state),
+            KeyCode::Tab => change_mode(state),
+            _ => {}
+        };
+    }
+}
+
+fn insert(to_insert: char, state: &mut EtatParametre) {
+    match state.selected {
+        ParametreInput::OWNER => state.owner.push(to_insert),
+        ParametreInput::REPO => state.repository.push(to_insert),
+    }
+}
+
+fn delete(state: &mut EtatParametre) {
+    match state.selected {
+        ParametreInput::OWNER => state.owner.pop(),
+        ParametreInput::REPO => state.repository.pop(),
+    };
+}
+
+fn change_mode(state: &mut EtatParametre) {
+    match state.selected {
+        ParametreInput::OWNER => state.selected = ParametreInput::REPO,
+        ParametreInput::REPO => state.selected = ParametreInput::OWNER,
+    };
 }
