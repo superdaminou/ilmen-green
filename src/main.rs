@@ -11,8 +11,8 @@ fn main() -> io::Result<()>{
     dotenv().ok();
     //env_logger::init();
 
-    let mut terminal = ratatui::init();
-    let app_result = App::default().run(&mut terminal);
+    let terminal = ratatui::init();
+    let app_result = App::default().run(terminal);
     ratatui::restore();
     app_result
 }

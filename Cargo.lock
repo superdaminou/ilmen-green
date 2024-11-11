@@ -712,6 +712,7 @@ dependencies = [
  "ratatui",
  "reqwest",
  "serde",
+ "strum",
  "tokio",
 ]
 

@@ -10,6 +10,7 @@ use super::git_structs::{Artifacts, Cache, Repository, Workflows};
 
 const BASE_URL : &str = "https://api.github.com/repos";
 
+#[derive(Debug, Default, Clone)]
 pub struct GitClient {
     client_http: reqwest::blocking::Client,
     repo: String,
