@@ -53,7 +53,7 @@ impl GitClient {
         let cache : Cache = self.get(GitAction::CACHE);
 
 
-        let kbytes_totale_stocke = ((repository.size * 1024) + (cache.active_caches_count * cache.active_caches_size_in_bytes) + artifacts.taille_totale()) as f32 / 1000000.0;
+        let kbytes_totale_stocke = ((repository.size * 1024) + cache.active_caches_size_in_bytes + artifacts.taille_totale()) as f32 / 1000000.0;
 
         let taux = if workflows.total() > 0  {workflows.nombre_succes() as f32 * 100.0 / workflows.total() as f32} else {100.0};
 
@@ -66,7 +66,7 @@ impl GitClient {
             rapport_workflows: RapportWorfkows {
                 total: workflows.total(),
                 echoue: workflows.nombre_echec(),
-                reussi: workflows.nombre_succes(),
+                reussi: workflows.nombre_succes()+ workflows.complete(),
                 taux
             }
         }

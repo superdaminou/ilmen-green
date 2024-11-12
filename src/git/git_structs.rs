@@ -32,28 +32,39 @@ impl Workflows {
     }
 
     pub fn nombre_succes(&self) -> usize {
-        self.nombre_conclusion(Conclusion::SUCCESS)
+        self.nombre_conclusion(Status::SUCCESS) + self.nombre_conclusion(Status::COMPLETED) +
+            self.nombre_statut(Status::COMPLETED) + self.nombre_statut(Status::SUCCESS)
     }
 
     pub fn nombre_echec(&self) -> usize {
-        self.nombre_conclusion(Conclusion::FAILURE)
+        self.nombre_conclusion(Status::FAILURE)
     }
 
-    fn nombre_conclusion(&self, conclusion: Conclusion) -> usize{
+    pub fn complete(&self) -> usize {
+        self.nombre_statut(Status::COMPLETED)
+    }
+
+    fn nombre_conclusion(&self, conclusion: Status) -> usize{
         self.workflow_runs.iter().filter(|w| w.conclusion.as_ref().is_some_and(|c|c.eq(&conclusion.to_string()))).collect::<Vec<_>>().len()
+    }
+
+    fn nombre_statut(&self, statut: Status) -> usize{
+        self.workflow_runs.iter().filter(|w| w.status.eq(&statut.to_string())).collect::<Vec<_>>().len()
     }
 }
 
-enum Conclusion {
+enum Status {
     SUCCESS,
+    COMPLETED,
     FAILURE
 }
 
-impl ToString for Conclusion {
+impl ToString for Status {
     fn to_string(&self) -> String {
         match self {
-            Conclusion::SUCCESS => "success",
-            Conclusion::FAILURE => "failure",
+            Status::SUCCESS => "success",
+            Status::FAILURE => "failure",
+            Status::COMPLETED => "completed"
         }
         .to_string()
     }
