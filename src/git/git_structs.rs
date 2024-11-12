@@ -85,6 +85,5 @@ pub struct Repository {
 
 #[derive(Deserialize, Debug)]
 pub struct Cache {
-    pub active_caches_size_in_bytes: usize,
-    pub active_caches_count: usize
+    pub active_caches_size_in_bytes: usize
 }

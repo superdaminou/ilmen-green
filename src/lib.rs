@@ -1,3 +1,5 @@
-pub mod git;
+mod git;
 mod rapport;
 mod ui;
+
+

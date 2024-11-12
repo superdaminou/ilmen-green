@@ -2,7 +2,7 @@ use std::io;
 
 use ratatui::{buffer::Buffer, crossterm::event::{self, KeyCode, KeyEvent, KeyEventKind}, layout::{Constraint, Layout, Rect}, style::Stylize, text::Line, widgets::{StatefulWidget, Tabs, Widget}, DefaultTerminal};
 
-use crate::{git::git_client::GitClient, rapport::Rapport};
+use crate::{rapport::Rapport, rapport::rapport};
 
 use super::{parametre::{EtatParametre, ParametresUi}, rapport::RapportUi};
 use strum::{Display, EnumIter, FromRepr, IntoEnumIterator};
@@ -17,17 +17,12 @@ impl App {
     pub fn run(mut self, mut terminal: DefaultTerminal) -> io::Result<()> {
         let repo = std::env::var("REPO").expect("MISSING REPO");
         let owner = std::env::var("OWNER").expect("MISSING OWNER");
-        let mut git_client = GitClient::new(
-            reqwest::blocking::Client::new(),
-            &owner, 
-           &repo,
-            &std::env::var("TOKEN").expect("MISSING TOKEN"));
+        let token = std::env::var("TOKEN").expect("MISSING TOKEN");
+        let rapport = rapport(&owner, &repo, &token);
         
         let mut etat =  EtatGlobal {
-            rapport: git_client.rapport(&owner, &repo),
-            owner: std::env::var("OWNER").expect("MISSING OWNER"),
-            parametre_state: EtatParametre::new(&owner,&repo),
-            client: git_client
+            rapport,
+            parametre_state: EtatParametre::new(&owner,&repo, &token),
         };
 
         terminal.clear()?;
@@ -58,7 +53,7 @@ impl App {
             KeyCode::Char('é') => {self.selected= SelectedTab::Rapport; true}, 
             KeyCode::Enter => {
                 self.selected = SelectedTab::Rapport;
-                etat.generer_rapport();
+                etat.actualiser_rapport();
                 true
             },
             _ => false
@@ -69,7 +64,7 @@ impl App {
         
         match self.selected {
             SelectedTab::Parametres => ParametresUi::handle_key_event(key_event, &mut etat.parametre_state),
-            SelectedTab::Rapport => RapportUi::handle_key_event(key_event),
+            SelectedTab::Rapport => RapportUi::handle_key_event(key_event, &mut etat.parametre_state),
         }
         
     }
@@ -113,14 +108,12 @@ fn render_footer(area: Rect, buf: &mut Buffer) {
 #[derive(Debug, Default)]
 pub struct EtatGlobal {
     pub rapport: Rapport,
-    pub owner: String,
     pub parametre_state: EtatParametre,
-    pub client: GitClient,
 }
 
 impl EtatGlobal {
-    fn generer_rapport(&mut self) {
-        self.rapport = self.client.rapport(&self.parametre_state.owner, &self.parametre_state.repository);
+    fn actualiser_rapport(&mut self) {
+        self.rapport = rapport(&self.parametre_state.owner, &self.parametre_state.repository, &self.parametre_state.token);
     }
 }
 

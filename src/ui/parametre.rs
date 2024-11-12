@@ -8,24 +8,54 @@ pub struct ParametresUi {}
 pub struct EtatParametre {
     pub owner: String,
     pub repository: String,
-    pub selected: ParametreInput 
+    pub token: String,
+    pub index_selected: usize,
+    pub selected: ParametreInput
 }
 
 
 impl EtatParametre {
-    pub fn new(owner: &String, repo: &String) -> EtatParametre {
+    pub fn new(owner: &String, repo: &String, token: &String) -> EtatParametre {
         EtatParametre {
             owner: owner.clone(),
             repository: repo.clone(),
+            token: token.clone(),
             ..Default::default()
         }
     }
 }
-#[derive(Default, Debug)]
+#[derive(Default, Debug, PartialEq, Clone)]
 pub enum ParametreInput {
     #[default]
     OWNER,
-    REPO
+    REPO,
+    TOKEN
+}
+
+impl ParametreInput {
+    pub fn ordered()-> Vec<ParametreInput> {
+        vec![ParametreInput::OWNER, ParametreInput::REPO, ParametreInput::TOKEN]
+    }
+}
+
+impl StatefulWidget for ParametreInput {
+    type State = EtatParametre;
+    
+    fn render<'a>(self, area: ratatui::prelude::Rect, buf: &'a mut ratatui::prelude::Buffer, state: &'a mut Self::State) {
+        let char_selected = if state.selected == self { "█"} else {""};
+
+        let paragraphe = match self {
+            ParametreInput::OWNER => format!("Owner: {}{}", state.owner, char_selected),
+            ParametreInput::REPO => format!("Repository: {}{}", state.repository, char_selected),
+            ParametreInput::TOKEN => format!("Token: {}{}", state.token, char_selected),
+        };
+
+        if state.selected == self {
+            Paragraph::new(paragraphe+char_selected).block(Block::bordered()).render(area, buf);
+        } else {
+            Paragraph::new(paragraphe).render(area, buf);
+        }
+    }
 }
 
 
@@ -36,22 +66,15 @@ impl StatefulWidget for ParametresUi {
         let layout = Layout::default()
             .direction(Direction::Vertical)
             .constraints(vec![
-                Constraint::Percentage(50),
-                Constraint::Percentage(50),
+                Constraint::Percentage(33),
+                Constraint::Percentage(33),
+                Constraint::Percentage(33),
             ])
             .split(area);
 
-        match state.selected {
-            ParametreInput::OWNER => {
-                Paragraph::new(format!("Owner: {}", state.owner)).block(Block::bordered()).render(layout[0], buf);
-                Paragraph::new(format!("Repository:  {}", state.repository)).render(layout[1], buf);
-            },
-            ParametreInput::REPO => {
-                Paragraph::new(format!("Owner: {}", state.owner)).render(layout[0], buf);
-                Paragraph::new(format!("Repository:  {}", state.repository)).block(Block::bordered()).render(layout[1], buf);
-            },
-        }
-        
+        ParametreInput::render(ParametreInput::OWNER, layout[0], buf, state);
+        ParametreInput::render(ParametreInput::REPO, layout[1], buf, state);
+        ParametreInput::render(ParametreInput::TOKEN, layout[2], buf, state);
     }
 }
 
@@ -70,6 +93,7 @@ fn insert(to_insert: char, state: &mut EtatParametre) {
     match state.selected {
         ParametreInput::OWNER => state.owner.push(to_insert),
         ParametreInput::REPO => state.repository.push(to_insert),
+        ParametreInput::TOKEN =>  state.token.push(to_insert),
     }
 }
 
@@ -77,12 +101,15 @@ fn delete(state: &mut EtatParametre) {
     match state.selected {
         ParametreInput::OWNER => state.owner.pop(),
         ParametreInput::REPO => state.repository.pop(),
+        ParametreInput::TOKEN => state.token.pop(),
     };
 }
 
 fn change_mode(state: &mut EtatParametre) {
-    match state.selected {
-        ParametreInput::OWNER => state.selected = ParametreInput::REPO,
-        ParametreInput::REPO => state.selected = ParametreInput::OWNER,
-    };
+    if state.index_selected == 2 {
+        state.index_selected = 0;
+    } else {
+        state.index_selected += 1;
+    }
+    state.selected = ParametreInput::ordered().get(state.index_selected).unwrap().clone();
 }

@@ -1,12 +1,12 @@
 
+use chrono::{Months, Utc};
 use log::info;
 use reqwest::header::HeaderMap;
 use serde::de::DeserializeOwned;
 
-use crate::rapport::{Rapport, RapportWorfkows};
+use crate::{rapport::{estimation::Estimations, general::General, worklow::RapportWorfkows, Rapport}, ui::GenererRapport};
 
 use super::git_structs::{Artifacts, Cache, Repository, Workflows};
-
 
 const BASE_URL : &str = "https://api.github.com/repos";
 
@@ -30,7 +30,7 @@ impl GitClient {
 
     pub fn get<T: DeserializeOwned>(&self, action: GitAction) -> T {
         let mut headers= HeaderMap::new();
-        headers.insert("user-agent","CUSTOM_NAME/1.0".parse().unwrap());
+        headers.insert("user-agent","ILMEN/1.0".parse().unwrap());
 
         info!("Getting {}", format!("{}/{}/{}{}", BASE_URL, self.owner, self.repo,  action.path()));
         self.client_http.get(format!("{}/{}/{}{}", BASE_URL, self.owner, self.repo,  action.path()))
@@ -44,35 +44,7 @@ impl GitClient {
             .unwrap()
     }
 
-    pub fn rapport(&mut self, owner: &String, repo: &String) -> Rapport {
-        self.owner = owner.clone();
-        self.repo = repo.clone();
-        let repository : Repository = self.get(GitAction::REPO);
-        let artifacts : Artifacts = self.get(GitAction::ARTIFACTS);
-        let workflows : Workflows = self.get(GitAction::WORKFLOWS);
-        let cache : Cache = self.get(GitAction::CACHE);
-
-
-        let kbytes_totale_stocke = ((repository.size * 1024) + cache.active_caches_size_in_bytes + artifacts.taille_totale()) as f32 / 1000000.0;
-
-        let taux = if workflows.total() > 0  {workflows.nombre_succes() as f32 * 100.0 / workflows.total() as f32} else {100.0};
-
-        let estimation_echange_reseaux = repository.size * workflows.total();
-        Rapport {
-            repo_name: self.repo.clone(),
-            stockage_total: kbytes_totale_stocke,
-            taille_repository: repository.size as f32 / 1000.0,
-            total_artifacts: artifacts.taille_totale() as f32 / 1000000.0,
-            total_cache: cache.active_caches_size_in_bytes as f32 / 1000000.0,
-            rapport_workflows: RapportWorfkows {
-                total: workflows.total(),
-                echoue: workflows.nombre_echec(),
-                reussi: workflows.nombre_succes()+ workflows.complete(),
-                taux
-            },
-            estimation_echange_reseaux: estimation_echange_reseaux as f32 / 1000.0
-        }
-    }
+    
 }
 pub enum GitAction {
     REPO,
@@ -82,12 +54,50 @@ pub enum GitAction {
 }
 
 impl GitAction {
-    pub fn path(&self) -> &str {
+    pub fn path(&self) -> String {
+        let date= Utc::now().checked_sub_months(Months::new(1)).unwrap().format("%Y-%m-%d").to_string();
+        let ressource = format!("/actions/runs?created=>{}", date);
         match self {
             GitAction::REPO => "",
             GitAction::ARTIFACTS => "/actions/artifacts",
-            GitAction::WORKFLOWS => "/actions/runs",
+            GitAction::WORKFLOWS => &ressource,
             GitAction::CACHE => "/actions/cache/usage"
+        }.to_string()
+    }
+}
+
+impl GenererRapport for GitClient {
+    fn generer_rapport(&self, owner: &String,  repo: &String, token: &String) -> Rapport {
+        let repository : Repository = self.get(GitAction::REPO);
+        let artifacts : Artifacts = self.get(GitAction::ARTIFACTS);
+        let workflows : Workflows = self.get(GitAction::WORKFLOWS);
+        let cache : Cache = self.get(GitAction::CACHE);
+
+        let general = General {
+            repo_name: repo.clone(),
+            taille_repository: repository.size as f32 / 1000.0,
+            total_artifacts: artifacts.taille_totale() as f32 / 1000000.0,
+            total_cache: cache.active_caches_size_in_bytes as f32 / 1000000.0,
+            totale_stocke: ((repository.size * 1024) + cache.active_caches_size_in_bytes + artifacts.taille_totale()) as f32 / 1000000.0
+        };
+
+
+        let taux = if workflows.total() > 0  {workflows.nombre_succes() as f32 * 100.0 / workflows.total() as f32} else {100.0};
+        let rapport = RapportWorfkows {
+            total: workflows.total(),
+            echoue: workflows.nombre_echec(),
+            reussi: workflows.nombre_succes()+ workflows.complete(),
+            taux
+        };
+
+        let estimation = Estimations {
+            echange_reseaux: (repository.size  * workflows.total()) as f32 / 1000.0
+        };
+
+        Rapport {
+            general,
+            rapport_workflows: rapport,
+            estimation
         }
     }
 }
