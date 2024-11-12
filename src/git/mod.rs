@@ -1,2 +1,3 @@
-pub mod git_client;
-pub mod git_structs;
+pub mod client;
+pub mod models;
+pub mod actions;

@@ -1,8 +1,10 @@
+use std::fmt::Display;
+
 use estimation::Estimations;
 use general::General;
 use worklow::RapportWorfkows;
 
-use crate::{git::git_client::GitClient, ui::GenererRapport};
+use crate::{git::client::Client, ui::GenererRapport};
 
 pub mod general;
 pub mod worklow;
@@ -29,6 +31,16 @@ impl IntoRapport for  Rapport {
 
 
 pub fn rapport(owner: &String, repo: &String, token: &String) -> Rapport {
-    GitClient::new(reqwest::blocking::Client::new(), repo, owner, token)
+    Client::new(reqwest::blocking::Client::new())
         .generer_rapport(owner, repo, token)
+}
+
+
+#[derive(Debug, Default, Clone)]
+pub struct Mb(pub f32);
+
+impl ToString for Mb {
+    fn to_string(&self) -> String {
+        format!("{}Mb",self.0)
+    }
 }

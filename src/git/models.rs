@@ -32,8 +32,7 @@ impl Workflows {
     }
 
     pub fn nombre_succes(&self) -> usize {
-        self.nombre_conclusion(Status::SUCCESS) + self.nombre_conclusion(Status::COMPLETED) +
-            self.nombre_statut(Status::COMPLETED) + self.nombre_statut(Status::SUCCESS)
+        self.nombre_conclusion(Status::SUCCESS)
     }
 
     pub fn nombre_echec(&self) -> usize {

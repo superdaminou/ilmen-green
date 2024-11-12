@@ -10,7 +10,7 @@ pub struct RapportWorfkows {
 
 impl IntoRapport for RapportWorfkows {
     fn into_rapport(&self) -> String {
-        format!("Total Workflows: {}\r\n", self.total)+
+        format!("Workflows du dernier mois: {}\r\n", self.total)+
         &format!("  Worflows Reussis: {}\r\n", self.reussi) +
         &format!("  Worflows Echoué: {}\r\n", self.echoue) + 
         &format!("  Pourcentage de réussite: {}\r\n", self.taux)
