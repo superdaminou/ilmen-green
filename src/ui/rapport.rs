@@ -1,16 +1,10 @@
 use ratatui::{crossterm::event::{KeyCode, KeyEvent}, style::Stylize, text::Text, widgets::{Paragraph, StatefulWidget, Widget}};
 
-use crate::rapport::{Rapport};
-
 use super::app::EtatGlobal;
 
 
 #[derive(Debug, Default, Clone)]
-pub struct RapportUi {
-    active: bool,
-    pub rapport: Rapport
-}
-
+pub struct RapportUi {}
 
 impl StatefulWidget for RapportUi {
     type State = EtatGlobal;
@@ -24,7 +18,7 @@ impl StatefulWidget for RapportUi {
 }
 
 impl RapportUi {
-    pub fn handle_key_event(key_event: KeyEvent, state: &mut EtatGlobal) {
+    pub fn handle_key_event(key_event: KeyEvent) {
         if key_event.code == KeyCode::Enter { generer_rapport() };
     }
 }

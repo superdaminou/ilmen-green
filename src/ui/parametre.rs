@@ -2,10 +2,7 @@ use ratatui::{crossterm::event::{KeyCode, KeyEvent}, layout::{Constraint, Direct
 
 
 #[derive(Debug, Default)]
-pub struct ParametresUi {
-    owner: String,
-    repositoty: String
-}
+pub struct ParametresUi {}
 
 #[derive(Default,Debug)]
 pub struct EtatParametre {
@@ -25,7 +22,7 @@ impl EtatParametre {
     }
 }
 #[derive(Default, Debug)]
-enum ParametreInput {
+pub enum ParametreInput {
     #[default]
     OWNER,
     REPO

@@ -14,7 +14,6 @@ pub struct App {
 }
 
 impl App {
-    /// runs the application's main loop until the user quits
     pub fn run(mut self, mut terminal: DefaultTerminal) -> io::Result<()> {
         let repo = std::env::var("REPO").expect("MISSING REPO");
         let owner = std::env::var("OWNER").expect("MISSING OWNER");
@@ -51,22 +50,26 @@ impl App {
         Ok(())
     }
 
+
     fn handle_key_event(&mut self, key_event: KeyEvent, etat: &mut EtatGlobal) {
-        match key_event.code {
-            KeyCode::Esc => self.exit = true,
-            KeyCode::Char('&') => self.selected=SelectedTab::Parametres, 
-            KeyCode::Char('é') => self.selected= SelectedTab::Rapport, 
+        let switch = match key_event.code {
+            KeyCode::Esc => {self.exit = true; false},
+            KeyCode::Char('&') => {self.selected=SelectedTab::Parametres; true}, 
+            KeyCode::Char('é') => {self.selected= SelectedTab::Rapport; true}, 
             KeyCode::Enter => {
                 self.selected = SelectedTab::Rapport;
                 etat.generer_rapport();
+                true
             },
-            _ => {}
-        }
+            _ => false
+        };
+
+        if switch { return; }
 
         
         match self.selected {
             SelectedTab::Parametres => ParametresUi::handle_key_event(key_event, &mut etat.parametre_state),
-            SelectedTab::Rapport => RapportUi::handle_key_event(key_event,etat),
+            SelectedTab::Rapport => RapportUi::handle_key_event(key_event),
         }
         
     }
@@ -86,14 +89,9 @@ impl App {
 impl StatefulWidget for &App {
     type State = EtatGlobal;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut EtatGlobal) {
-        use Constraint::{Length, Min};
-        let vertical = Layout::vertical([Length(1), Min(0), Length(1)]);
-        let [header_area, inner_area, footer_area] = vertical.areas(area);
-
-        let horizontal = Layout::horizontal([Min(0), Length(20)]);
-        let [tabs_area, title_area] = horizontal.areas(header_area);
-
-        render_title(title_area, buf);
+        let vertical = Layout::vertical([Constraint::Percentage(10), Constraint::Percentage(10), Constraint::Percentage(70), Constraint::Percentage(10)]);
+        let [header_area, tabs_area, inner_area, footer_area] = vertical.areas(area);
+        render_title(header_area, buf);
         self.render_tabs(tabs_area, buf);
         self.selected.render(inner_area, buf, state);
         render_footer(footer_area, buf);
@@ -105,7 +103,7 @@ fn render_title(area: Rect, buf: &mut Buffer) {
 }
 
 fn render_footer(area: Rect, buf: &mut Buffer) {
-    Line::raw("press Enter for report | Press q to quit")
+    Line::raw("Enter: generate report | Esc: quit | Tab: switch input")
         .centered()
         .render(area, buf);
 }
@@ -130,17 +128,16 @@ impl EtatGlobal {
 #[derive(Default, Clone, Copy, Display, FromRepr, EnumIter, Debug)]
 enum SelectedTab {
     #[default]
-    #[strum(to_string = "& Parametres")]
+    #[strum(to_string = "& - Parametres")]
     Parametres,
     
-    #[strum(to_string = "é Rapport")]
+    #[strum(to_string = "é - Rapport")]
     Rapport,
 }
 
 impl StatefulWidget for SelectedTab {
     type State = EtatGlobal;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut EtatGlobal) {
-        // in a real app these might be separate widgets
         match self {
             Self::Rapport => RapportUi::default().render( area, buf, state),
             Self::Parametres => ParametresUi::default().render(area, buf, &mut state.parametre_state)
