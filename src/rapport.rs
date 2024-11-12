@@ -7,6 +7,7 @@ pub struct Rapport {
     pub total_artifacts: f32,
     pub total_cache: f32,
     pub rapport_workflows: RapportWorfkows,
+    pub estimation_echange_reseaux: f32
 }
 
 impl ToString for  Rapport {
@@ -18,7 +19,8 @@ impl ToString for  Rapport {
         &format!("Total Workflows: {}\r\n", self.rapport_workflows.total)+
         &format!("  Worflows Reussis: {}\r\n", self.rapport_workflows.reussi) +
         &format!("  Worflows Echoué: {}\r\n", self.rapport_workflows.echoue) + 
-        &format!("  Pourcentage de réussite: {}\r\n", self.rapport_workflows.taux)
+        &format!("  Pourcentage de réussite: {}\r\n", self.rapport_workflows.taux)+
+        &format!("Estimation échange réseaux: {}\r\n", self.estimation_echange_reseaux)
     }
 }
 

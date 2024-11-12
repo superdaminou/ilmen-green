@@ -57,6 +57,7 @@ impl GitClient {
 
         let taux = if workflows.total() > 0  {workflows.nombre_succes() as f32 * 100.0 / workflows.total() as f32} else {100.0};
 
+        let estimation_echange_reseaux = repository.size * workflows.total();
         Rapport {
             repo_name: self.repo.clone(),
             stockage_total: kbytes_totale_stocke,
@@ -68,7 +69,8 @@ impl GitClient {
                 echoue: workflows.nombre_echec(),
                 reussi: workflows.nombre_succes()+ workflows.complete(),
                 taux
-            }
+            },
+            estimation_echange_reseaux: estimation_echange_reseaux as f32 / 1000.0
         }
     }
 }
