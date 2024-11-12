@@ -1,6 +1,6 @@
 
 
-use ratatui::{crossterm::event::{KeyCode, KeyEvent}, layout::{Constraint, Layout}, style::Stylize, text::Text, widgets::{Paragraph, StatefulWidget, Widget}};
+use ratatui::{crossterm::event::{KeyCode, KeyEvent}, layout::{Constraint, Layout}, widgets::{Paragraph, StatefulWidget, Widget}};
 
 use crate::rapport::IntoRapport;
 

@@ -1,9 +1,11 @@
 
+use std::collections::HashMap;
+
 use log::info;
 use reqwest::header::HeaderMap;
 use serde::de::DeserializeOwned;
 
-use crate::{rapport::{estimation::Estimations, general::General, worklow::RapportWorfkows, Mb, Rapport}, ui::GenererRapport};
+use crate::{rapport::{estimation::Estimations, general::General, worklow::{RapportWorfkows, StatutWorkflow}, Mb, Rapport}, ui::GenererRapport};
 
 use super::{actions::Action, models::{Artifacts, Cache, Repository, Workflows}};
 
@@ -50,12 +52,26 @@ impl GenererRapport for Client {
         let general = General::new(repo_name, Mb(repository.size as f32 / 1000.0), 
         Mb(artifacts.taille_totale() as f32 / 1000000.0), Mb(cache.active_caches_size_in_bytes as f32 / 1000000.0));
 
+        let mut repartitions: HashMap<StatutWorkflow, usize> = HashMap::new();
+
+        workflows.workflow_runs.iter().for_each(|w| {
+            match w.conclusion.as_ref() {
+                Some(a) => {
+                    match a.as_str() {
+                        "success" => repartitions.insert(StatutWorkflow::SUCCES, repartitions.get(&StatutWorkflow::SUCCES).unwrap_or(&0) +1),
+                        "failure" => repartitions.insert(StatutWorkflow::ECHEC, repartitions.get(&StatutWorkflow::ECHEC).unwrap_or(&0) +1),
+                        _ => repartitions.insert(StatutWorkflow::AUTRE, repartitions.get(&StatutWorkflow::AUTRE).unwrap_or(&0) +1)
+                    }
+                },
+                None => repartitions.insert(StatutWorkflow::AUTRE, repartitions.get(&StatutWorkflow::AUTRE).unwrap_or(&0)+1),
+            };
+        });
+
 
         let taux = if workflows.total() > 0  {workflows.nombre_succes() as f32 * 100.0 / workflows.total() as f32} else {100.0};
         let rapport = RapportWorfkows {
             total: workflows.total(),
-            echoue: workflows.nombre_echec(),
-            reussi: workflows.nombre_succes(),
+            repartition: repartitions,
             taux
         };
 

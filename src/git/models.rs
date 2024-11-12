@@ -1,6 +1,8 @@
 
 use serde::Deserialize;
 
+use crate::rapport::worklow::StatutWorkflow;
+
 #[derive(Deserialize, Debug)]
 pub struct Artifacts{
     pub artifacts: Vec<Artifact>
@@ -23,7 +25,7 @@ pub struct Artifact {
 #[derive(Deserialize, Debug)]
 pub struct Workflows{
     total_count: Option<usize>,
-    workflow_runs: Vec<Workflow>
+    pub workflow_runs: Vec<Workflow>
 }
 
 impl Workflows {
@@ -52,7 +54,7 @@ impl Workflows {
     }
 }
 
-enum Status {
+pub enum Status {
     SUCCESS,
     COMPLETED,
     FAILURE
@@ -66,6 +68,16 @@ impl ToString for Status {
             Status::COMPLETED => "completed"
         }
         .to_string()
+    }
+}
+
+impl From<Status> for StatutWorkflow {
+    fn from(val: Status) -> Self {
+        match val {
+            Status::SUCCESS => StatutWorkflow::SUCCES,
+            Status::COMPLETED => StatutWorkflow::SUCCES,
+            Status::FAILURE => StatutWorkflow::ECHEC,
+        }
     }
 }
 
