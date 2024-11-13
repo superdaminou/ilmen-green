@@ -53,18 +53,23 @@ impl GenererRapport for Client {
         Mb(artifacts.taille_totale() as f32 / 1000000.0), Mb(cache.active_caches_size_in_bytes as f32 / 1000000.0));
 
         let mut repartitions: HashMap<StatutWorkflow, usize> = HashMap::new();
-        info!("{} workflows", workflows.workflow_runs.len());
-        workflows.workflow_runs.iter().for_each(|w| {
-            match w.conclusion.as_ref() {
-                Some(a) => {
-                    match a.as_str() {
-                        "success" => repartitions.insert(StatutWorkflow::SUCCES, repartitions.get(&StatutWorkflow::SUCCES).unwrap_or(&0) +1),
-                        "failure" => repartitions.insert(StatutWorkflow::ECHEC, repartitions.get(&StatutWorkflow::ECHEC).unwrap_or(&0) +1),
-                        _ => repartitions.insert(StatutWorkflow::AUTRE, repartitions.get(&StatutWorkflow::AUTRE).unwrap_or(&0) +1)
-                    }
-                },
-                None => repartitions.insert(StatutWorkflow::AUTRE, repartitions.get(&StatutWorkflow::AUTRE).unwrap_or(&0)+1),
-            };
+
+
+        let finished_workflows = workflows.workflow_runs.iter()
+            .filter(|w| w.status == "completed").collect::<Vec<_>>(); 
+
+        finished_workflows.iter()
+            .for_each(|w| {
+                match w.conclusion.as_ref() {
+                    Some(conclusion) => {
+                        match conclusion.as_str() {
+                            "success" => repartitions.insert(StatutWorkflow::SUCCES, repartitions.get(&StatutWorkflow::SUCCES).unwrap_or(&0) +1),
+                            "failure" => repartitions.insert(StatutWorkflow::ECHEC, repartitions.get(&StatutWorkflow::ECHEC).unwrap_or(&0) +1),
+                            _ => repartitions.insert(StatutWorkflow::AUTRE, repartitions.get(&StatutWorkflow::AUTRE).unwrap_or(&0) +1)
+                        }
+                    },
+                    None => repartitions.insert(StatutWorkflow::AUTRE, repartitions.get(&StatutWorkflow::AUTRE).unwrap_or(&0)+1),
+                };
         });
 
         let nb_retry= workflows.workflow_runs.iter()
@@ -74,16 +79,16 @@ impl GenererRapport for Client {
             .unwrap_or_default();
 
 
-        let taux = if workflows.total() > 0  {workflows.nombre_succes() as f32 * 100.0 / workflows.total() as f32} else {100.0};
+        let taux = if finished_workflows.len() > 0  {*(repartitions.get(&StatutWorkflow::SUCCES).unwrap_or(&0)) as f32 * 100.0 / finished_workflows.len() as f32} else {100.0};
         let rapport = RapportWorfkows {
-            total: workflows.total(),
+            total: finished_workflows.len(),
             repartition: repartitions,
             nombre_tentative: nb_retry,
             taux
         };
 
         let estimation = Estimations {
-            echange_reseaux: Mb(general.taille_repository.0 * workflows.total() as f32)
+            echange_reseaux: Mb(general.taille_repository.0 * finished_workflows.len() as f32)
         };
 
         Rapport {

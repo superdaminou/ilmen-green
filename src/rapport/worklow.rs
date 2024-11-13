@@ -12,7 +12,7 @@ pub struct RapportWorfkows {
 
 impl IntoRapport for RapportWorfkows {
     fn into_rapport(&self) -> String {
-        format!("Workflows sur 7j: {}\r\n", self.total)+
+        format!("Workflows 7 derniers jours: {}\r\n", self.total)+
         &self.repartition.iter()
             .map(|(k,v)| format!("Worflows {}: {}", k.to_string(),v))
             .collect::<Vec<String>>()
