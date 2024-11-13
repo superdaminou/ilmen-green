@@ -9,7 +9,7 @@ mod rapport;
 
 fn main() -> io::Result<()>{
     dotenv().ok();
-    //env_logger::init();
+    env_logger::init();
 
     let terminal = ratatui::init();
     let app_result = App::default().run(terminal);

@@ -6,18 +6,20 @@ use super::IntoRapport;
 pub struct RapportWorfkows {
     pub total: usize,
     pub repartition: HashMap<StatutWorkflow, usize>,
+    pub nombre_tentative: usize,
     pub taux: f32
 }
 
 impl IntoRapport for RapportWorfkows {
     fn into_rapport(&self) -> String {
-        format!("Workflows du dernier mois: {}\r\n", self.total)+
+        format!("Workflows sur 7j: {}\r\n", self.total)+
         &self.repartition.iter()
-            .map(|(k,v)| format!("  Worflows {}: {}", k.to_string(),v))
+            .map(|(k,v)| format!("Worflows {}: {}", k.to_string(),v))
             .collect::<Vec<String>>()
             .to_owned()
-            .join("\r\n") + "\r\n" + 
-        &format!("  Pourcentage de réussite: {}\r\n", self.taux)
+            .join("\r\n") + "\r\n" +
+        &format!("Nombre de retry: {}\r\n", self.nombre_tentative) +
+        &format!("Pourcentage de réussite: {}\r\n", self.taux)
     }
 }
 

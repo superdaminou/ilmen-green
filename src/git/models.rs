@@ -84,7 +84,8 @@ impl From<Status> for StatutWorkflow {
 #[derive(Deserialize, Debug)]
 pub struct Workflow {
     pub status: String,
-    pub conclusion: Option<String>
+    pub conclusion: Option<String>,
+    pub run_attempt: usize
 }
 
 

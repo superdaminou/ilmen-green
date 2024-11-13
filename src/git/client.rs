@@ -53,7 +53,7 @@ impl GenererRapport for Client {
         Mb(artifacts.taille_totale() as f32 / 1000000.0), Mb(cache.active_caches_size_in_bytes as f32 / 1000000.0));
 
         let mut repartitions: HashMap<StatutWorkflow, usize> = HashMap::new();
-
+        info!("{} workflows", workflows.workflow_runs.len());
         workflows.workflow_runs.iter().for_each(|w| {
             match w.conclusion.as_ref() {
                 Some(a) => {
@@ -67,11 +67,18 @@ impl GenererRapport for Client {
             };
         });
 
+        let nb_retry= workflows.workflow_runs.iter()
+            .filter(|w| w.run_attempt > 1)
+            .map(|w|w.run_attempt-1)
+            .reduce(|acc, x|acc+x)
+            .unwrap_or_default();
+
 
         let taux = if workflows.total() > 0  {workflows.nombre_succes() as f32 * 100.0 / workflows.total() as f32} else {100.0};
         let rapport = RapportWorfkows {
             total: workflows.total(),
             repartition: repartitions,
+            nombre_tentative: nb_retry,
             taux
         };
 
