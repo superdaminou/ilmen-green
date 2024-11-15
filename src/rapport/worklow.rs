@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::format};
 
 use super::IntoRapport;
 
@@ -12,13 +12,14 @@ pub struct RapportWorfkows {
 
 impl IntoRapport for RapportWorfkows {
     fn into_rapport(&self) -> String {
-        format!("Workflows 7 derniers jours: {}\r\n", self.total)+
+        format!("Nombre de Workflows sur les 7 derniers jours: {}\r\n", self.total)+
+        &format!("Rapport sur les 100 derniers workflows des 7 derniers jours\r\n") + 
         &self.repartition.iter()
-            .map(|(k,v)| format!("Worflows {}: {}", k.to_string(),v))
+            .map(|(k,v)| format!("{}: {}", k.to_string(),v))
             .collect::<Vec<String>>()
             .to_owned()
             .join("\r\n") + "\r\n" +
-        &format!("Nombre de retry: {}\r\n", self.nombre_tentative) +
+        &format!("Retry: {}\r\n", self.nombre_tentative) +
         &format!("Pourcentage de réussite: {}\r\n", self.taux)
     }
 }

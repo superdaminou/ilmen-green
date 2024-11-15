@@ -81,7 +81,7 @@ impl GenererRapport for Client {
 
         let taux = if finished_workflows.len() > 0  {*(repartitions.get(&StatutWorkflow::SUCCES).unwrap_or(&0)) as f32 * 100.0 / finished_workflows.len() as f32} else {100.0};
         let rapport = RapportWorfkows {
-            total: finished_workflows.len(),
+            total: workflows.total(),
             repartition: repartitions,
             nombre_tentative: nb_retry,
             taux
