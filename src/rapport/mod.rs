@@ -1,22 +1,19 @@
 
-use estimation::Estimations;
 use general::General;
 use worklow::RapportWorfkows;
-
+pub mod cent_dernier;
+pub mod general;
+pub mod worklow;
+pub mod estimation;
 
 pub trait GenererRapport {
     fn generer_rapport(&self, owner: &String,  repository: &String, token: &String) -> Rapport;
 }
 
-pub mod general;
-pub mod worklow;
-pub mod estimation;
-
 #[derive(Debug, Default, Clone)]
 pub struct Rapport {
     pub general: General,
-    pub rapport_workflows: RapportWorfkows,
-    pub estimation: Estimations
+    pub rapport_workflows: RapportWorfkows
 }
 
 pub trait IntoRapport {
@@ -26,8 +23,7 @@ pub trait IntoRapport {
 impl IntoRapport for  Rapport {
     fn into_rapport(&self) -> String {
         self.general.into_rapport() + 
-        &self.rapport_workflows.into_rapport() +  
-        &self.estimation.into_rapport()
+        &self.rapport_workflows.into_rapport()
     }
 }
 

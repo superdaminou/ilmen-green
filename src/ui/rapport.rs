@@ -20,10 +20,10 @@ impl StatefulWidget for RapportUi {
         Paragraph::new(state.rapport.general.into_rapport())
             .centered()
             .render(general, buf);
-        Paragraph::new(state.rapport.rapport_workflows.into_rapport())
+        Paragraph::new(state.rapport.rapport_workflows.cent_dernier.into_rapport())
             .centered()
             .render(worflows, buf);
-        Paragraph::new(state.rapport.estimation.into_rapport())
+        Paragraph::new(state.rapport.rapport_workflows.derniere_periode.into_rapport())
             .centered()
             .render(estimation, buf);
     }

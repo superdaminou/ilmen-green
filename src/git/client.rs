@@ -5,7 +5,7 @@ use log::info;
 use reqwest::header::HeaderMap;
 use serde::de::DeserializeOwned;
 
-use crate::rapport::{estimation::Estimations, general::General, worklow::{RapportWorfkows, StatutWorkflow}, GenererRapport, Mb, Rapport};
+use crate::rapport::{cent_dernier::CentDernier, estimation::Estimations, general::General, worklow::{ DernierePeriode, RapportWorfkows, StatutWorkflow}, GenererRapport, Mb, Rapport};
 
 use super::{actions::Action, models::{Artifacts, Cache, Repository, Workflows}};
 
@@ -58,8 +58,8 @@ impl GenererRapport for Client {
             .filter(|w| w.status == "completed").collect::<Vec<_>>(); 
 
         finished_workflows.iter()
-            .for_each(|w| {
-                match w.conclusion.as_ref() {
+            .for_each(|workflow| {
+                match workflow.conclusion.as_ref() {
                     Some(conclusion) => {
                         match conclusion.as_str() {
                             "success" => repartitions.insert(StatutWorkflow::SUCCES, repartitions.get(&StatutWorkflow::SUCCES).unwrap_or(&0) +1),
@@ -76,24 +76,34 @@ impl GenererRapport for Client {
             .map(|w|w.run_attempt-1)
             .reduce(|acc, x|acc+x)
             .unwrap_or_default();
-
-
+        
         let taux = if !finished_workflows.is_empty()  {*(repartitions.get(&StatutWorkflow::SUCCES).unwrap_or(&0)) as f32 * 100.0 / finished_workflows.len() as f32} else {100.0};
-        let rapport = RapportWorfkows {
-            total: workflows.total(),
+
+        let cents_dernier = CentDernier {
             repartition: repartitions,
             nombre_tentative: nb_retry,
-            taux
+            taux 
         };
 
         let estimation = Estimations {
             echange_reseaux: Mb(general.taille_repository.0 * finished_workflows.len() as f32)
         };
 
+        let dernier_periode= DernierePeriode {
+            total: workflows.total(), 
+            estimation
+        };
+
+        let rapport = RapportWorfkows {
+            cent_dernier: cents_dernier,
+            derniere_periode: dernier_periode
+        };
+
+        
+
         Rapport {
             general,
-            rapport_workflows: rapport,
-            estimation
+            rapport_workflows: rapport
         }
     }
 }

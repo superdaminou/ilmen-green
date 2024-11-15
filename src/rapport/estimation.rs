@@ -7,6 +7,7 @@ pub struct Estimations {
 
 impl IntoRapport for Estimations {
     fn into_rapport(&self) -> String {
-        format!("Estimation échange réseaux: {}\r\n", self.echange_reseaux.to_string())
+        "Estimations:\r\n".to_string() +
+        &format!("échange réseaux: {}\r\n", self.echange_reseaux.to_string())
     }
 }

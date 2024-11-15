@@ -1,26 +1,33 @@
-use std::collections::HashMap;
 
-use super::IntoRapport;
+use super::{cent_dernier::CentDernier, estimation::Estimations, IntoRapport};
 
 #[derive(Debug, Default, Clone)]
 pub struct RapportWorfkows {
-    pub total: usize,
-    pub repartition: HashMap<StatutWorkflow, usize>,
-    pub nombre_tentative: usize,
-    pub taux: f32
+    pub derniere_periode: DernierePeriode,
+    pub cent_dernier: CentDernier
+    
 }
+
+#[derive(Debug, Default, Clone)]
+pub struct DernierePeriode {
+    pub total: usize,
+    pub estimation: Estimations
+}
+
+impl IntoRapport for DernierePeriode {
+    fn into_rapport(&self) -> String {
+        format!("{} worflows sur les 30 derniers jours\r\n", self.total) +
+        &self.estimation.into_rapport()
+    }
+}
+
 
 impl IntoRapport for RapportWorfkows {
     fn into_rapport(&self) -> String {
-        format!("Nombre de Workflows sur les 7 derniers jours: {}\r\n", self.total)+
-        "Rapport sur les 100 derniers workflows des 7 derniers jours\r\n" + 
-        &self.repartition.iter()
-            .map(|(k,v)| format!("{}: {}", k.to_string(),v))
-            .collect::<Vec<String>>()
-            .to_owned()
-            .join("\r\n") + "\r\n" +
-        &format!("Retry: {}\r\n", self.nombre_tentative) +
-        &format!("Pourcentage de réussite: {}\r\n", self.taux)
+        "Cent derniers worflows:\r\n".to_string() + 
+        &self.cent_dernier.into_rapport() +
+        "7 derniers jours:\r\n" +  
+        &self.derniere_periode.into_rapport()
     }
 }
 
