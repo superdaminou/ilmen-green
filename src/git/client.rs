@@ -5,7 +5,7 @@ use log::info;
 use reqwest::header::HeaderMap;
 use serde::de::DeserializeOwned;
 
-use crate::{rapport::{estimation::Estimations, general::General, worklow::{RapportWorfkows, StatutWorkflow}, Mb, Rapport}, ui::GenererRapport};
+use crate::rapport::{estimation::Estimations, general::General, worklow::{RapportWorfkows, StatutWorkflow}, GenererRapport, Mb, Rapport};
 
 use super::{actions::Action, models::{Artifacts, Cache, Repository, Workflows}};
 
@@ -17,9 +17,9 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(client: reqwest::blocking::Client) -> Client {
+    pub fn new() -> Client {
         Client {
-            client_http: client
+            client_http: reqwest::blocking::Client::new()
         }
     }
 
@@ -54,7 +54,6 @@ impl GenererRapport for Client {
 
         let mut repartitions: HashMap<StatutWorkflow, usize> = HashMap::new();
 
-
         let finished_workflows = workflows.workflow_runs.iter()
             .filter(|w| w.status == "completed").collect::<Vec<_>>(); 
 
@@ -79,7 +78,7 @@ impl GenererRapport for Client {
             .unwrap_or_default();
 
 
-        let taux = if finished_workflows.len() > 0  {*(repartitions.get(&StatutWorkflow::SUCCES).unwrap_or(&0)) as f32 * 100.0 / finished_workflows.len() as f32} else {100.0};
+        let taux = if !finished_workflows.is_empty()  {*(repartitions.get(&StatutWorkflow::SUCCES).unwrap_or(&0)) as f32 * 100.0 / finished_workflows.len() as f32} else {100.0};
         let rapport = RapportWorfkows {
             total: workflows.total(),
             repartition: repartitions,

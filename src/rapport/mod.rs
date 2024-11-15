@@ -3,7 +3,10 @@ use estimation::Estimations;
 use general::General;
 use worklow::RapportWorfkows;
 
-use crate::{git::client::Client, ui::GenererRapport};
+
+pub trait GenererRapport {
+    fn generer_rapport(&self, owner: &String,  repository: &String, token: &String) -> Rapport;
+}
 
 pub mod general;
 pub mod worklow;
@@ -27,13 +30,6 @@ impl IntoRapport for  Rapport {
         &self.estimation.into_rapport()
     }
 }
-
-
-pub fn rapport(owner: &String, repo: &String, token: &String) -> Rapport {
-    Client::new(reqwest::blocking::Client::new())
-        .generer_rapport(owner, repo, token)
-}
-
 
 #[derive(Debug, Default, Clone)]
 pub struct Mb(pub f32);

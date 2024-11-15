@@ -2,7 +2,7 @@ use std::io;
 
 use ratatui::{buffer::Buffer, crossterm::event::{self, KeyCode, KeyEvent, KeyEventKind}, layout::{Constraint, Layout, Rect}, style::Stylize, text::Line, widgets::{StatefulWidget, Tabs, Widget}, DefaultTerminal};
 
-use crate::{rapport::Rapport, rapport::rapport};
+use crate::{git, rapport::{GenererRapport, Rapport}};
 
 use super::{parametre::{EtatParametre, ParametresUi}, rapport::RapportUi};
 use strum::{Display, EnumIter, FromRepr, IntoEnumIterator};
@@ -18,7 +18,7 @@ impl App {
         let repo = std::env::var("REPO").expect("MISSING REPO");
         let owner = std::env::var("OWNER").expect("MISSING OWNER");
         let token = std::env::var("TOKEN").expect("MISSING TOKEN");
-        let rapport = rapport(&owner, &repo, &token);
+        let rapport = git::client::Client::new().generer_rapport(&owner, &repo, &token);
         
         let mut etat =  EtatGlobal {
             rapport,
@@ -113,7 +113,7 @@ pub struct EtatGlobal {
 
 impl EtatGlobal {
     fn actualiser_rapport(&mut self) {
-        self.rapport = rapport(&self.parametre_state.owner, &self.parametre_state.repository, &self.parametre_state.token);
+        self.rapport = git::client::Client::new().generer_rapport(&self.parametre_state.owner, &self.parametre_state.repository, &self.parametre_state.token);
     }
 }
 

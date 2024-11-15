@@ -32,26 +32,6 @@ impl Workflows {
     pub fn total(&self) -> usize {
         self.total_count.unwrap_or_default()
     }
-
-    pub fn nombre_succes(&self) -> usize {
-        self.nombre_conclusion(Status::SUCCESS)
-    }
-
-    pub fn nombre_echec(&self) -> usize {
-        self.nombre_conclusion(Status::FAILURE)
-    }
-
-    pub fn complete(&self) -> usize {
-        self.nombre_statut(Status::COMPLETED)
-    }
-
-    fn nombre_conclusion(&self, conclusion: Status) -> usize{
-        self.workflow_runs.iter().filter(|w| w.conclusion.as_ref().is_some_and(|c|c.eq(&conclusion.to_string()))).collect::<Vec<_>>().len()
-    }
-
-    fn nombre_statut(&self, statut: Status) -> usize{
-        self.workflow_runs.iter().filter(|w| w.status.eq(&statut.to_string())).collect::<Vec<_>>().len()
-    }
 }
 
 pub enum Status {

@@ -2,7 +2,7 @@
 
 use ratatui::{crossterm::event::{KeyCode, KeyEvent}, layout::{Constraint, Layout}, widgets::{Paragraph, StatefulWidget, Widget}};
 
-use crate::rapport::IntoRapport;
+use crate::{git, rapport::{GenererRapport, IntoRapport}};
 
 use super::{app::EtatGlobal, parametre::EtatParametre};
 
@@ -31,7 +31,7 @@ impl StatefulWidget for RapportUi {
 
 impl RapportUi {
     pub fn handle_key_event(key_event: KeyEvent, state: &mut EtatParametre) {
-        if key_event.code == KeyCode::Enter { crate::rapport::rapport(&state.owner, &state.repository, &state.token);};
+        if key_event.code == KeyCode::Enter { git::client::Client::new().generer_rapport(&state.owner, &state.repository, &state.token);};
     }
 }
 

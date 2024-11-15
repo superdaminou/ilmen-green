@@ -1,5 +1,5 @@
 mod git;
 mod rapport;
-mod ui;
 
-
+pub use git::client::Client;
+pub use rapport::GenererRapport;

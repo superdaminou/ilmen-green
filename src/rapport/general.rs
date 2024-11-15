@@ -10,9 +10,6 @@ pub struct General {
     
 }
 
-
-
-
 impl General {
     pub fn new(repository_name: &String, taille_repository: Mb, total_artifacts: Mb, total_cache: Mb) -> General {
         General {
