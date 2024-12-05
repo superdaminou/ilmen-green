@@ -4,7 +4,7 @@ use ratatui::{buffer::Buffer, crossterm::event::{self, KeyCode, KeyEvent, KeyEve
 
 use crate::{git, rapport::{GenererRapport, Rapport}};
 
-use super::{parametre::{EtatParametre, ParametresUi}, rapport::RapportUi};
+use super::{cent_dernier::CentDerniersUi, estimations::EstimationsUi, general::GeneralUi, parametre::{EtatParametre, ParametresUi}};
 use strum::{Display, EnumIter, FromRepr, IntoEnumIterator};
 
 #[derive(Debug, Default)]
@@ -49,10 +49,12 @@ impl App {
     fn handle_key_event(&mut self, key_event: KeyEvent, etat: &mut EtatGlobal) {
         let switch = match key_event.code {
             KeyCode::Esc => {self.exit = true; false},
-            KeyCode::Char('&') => {self.selected=SelectedTab::Parametres; true}, 
-            KeyCode::Char('é') => {self.selected= SelectedTab::Rapport; true}, 
+            KeyCode::Char('1') => {self.selected= SelectedTab::General; true},
+            KeyCode::Char('2') => {self.selected= SelectedTab::CentDernier; true},
+            KeyCode::Char('3') => {self.selected= SelectedTab::Estimations; true}, 
+            KeyCode::Char('4') => {self.selected=SelectedTab::Parametres; true}, 
             KeyCode::Enter => {
-                self.selected = SelectedTab::Rapport;
+                self.selected = SelectedTab::General;
                 etat.actualiser_rapport();
                 true
             },
@@ -64,7 +66,9 @@ impl App {
         
         match self.selected {
             SelectedTab::Parametres => ParametresUi::handle_key_event(key_event, &mut etat.parametre_state),
-            SelectedTab::Rapport => RapportUi::handle_key_event(key_event, &mut etat.parametre_state),
+            SelectedTab::General => GeneralUi::handle_key_event(key_event, &mut etat.parametre_state),
+            SelectedTab::CentDernier => CentDerniersUi::handle_key_event(key_event, &mut etat.parametre_state),
+            SelectedTab::Estimations => EstimationsUi::handle_key_event(key_event, &mut etat.parametre_state),
         }
         
     }
@@ -121,18 +125,26 @@ impl EtatGlobal {
 #[derive(Default, Clone, Copy, Display, FromRepr, EnumIter, Debug)]
 enum SelectedTab {
     #[default]
-    #[strum(to_string = "& - Parametres")]
-    Parametres,
+    #[strum(to_string = "1 - General")]
+    General,
     
-    #[strum(to_string = "é - Rapport")]
-    Rapport,
+    #[strum(to_string = "2 - 100 Derniers workflows")]
+    CentDernier,
+    
+    #[strum(to_string = "3 - Estimations")]
+    Estimations,
+    
+    #[strum(to_string = "4 - Parametres")]
+    Parametres,
 }
 
 impl StatefulWidget for SelectedTab {
     type State = EtatGlobal;
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut EtatGlobal) {
         match self {
-            Self::Rapport => RapportUi::default().render( area, buf, state),
+            Self::General => GeneralUi::default().render( area, buf, state),
+            Self::CentDernier => CentDerniersUi::default().render( area, buf, state),
+            Self::Estimations => EstimationsUi::default().render( area, buf, state),
             Self::Parametres => ParametresUi::default().render(area, buf, &mut state.parametre_state)
         }
     }

@@ -61,11 +61,8 @@ impl GenererRapport for Client {
             .for_each(|workflow| {
                 match workflow.conclusion.as_ref() {
                     Some(conclusion) => {
-                        match conclusion.as_str() {
-                            "success" => repartitions.insert(StatutWorkflow::SUCCES, repartitions.get(&StatutWorkflow::SUCCES).unwrap_or(&0) +1),
-                            "failure" => repartitions.insert(StatutWorkflow::ECHEC, repartitions.get(&StatutWorkflow::ECHEC).unwrap_or(&0) +1),
-                            _ => repartitions.insert(StatutWorkflow::AUTRE, repartitions.get(&StatutWorkflow::AUTRE).unwrap_or(&0) +1)
-                        }
+                        let statut_workflow = StatutWorkflow::from(conclusion.as_str());
+                        repartitions.insert(statut_workflow, repartitions.get(&statut_workflow).unwrap_or(&0) +1)
                     },
                     None => repartitions.insert(StatutWorkflow::AUTRE, repartitions.get(&StatutWorkflow::AUTRE).unwrap_or(&0)+1),
                 };
@@ -79,31 +76,11 @@ impl GenererRapport for Client {
         
         let taux = if !finished_workflows.is_empty()  {*(repartitions.get(&StatutWorkflow::SUCCES).unwrap_or(&0)) as f32 * 100.0 / finished_workflows.len() as f32} else {100.0};
 
-        let cents_dernier = CentDernier {
-            repartition: repartitions,
-            nombre_tentative: nb_retry,
-            taux 
-        };
+        let cents_dernier = CentDernier::new(repartitions,nb_retry,taux);
+        let estimation = Estimations::new(Mb(general.taille_repository.0 * finished_workflows.len() as f32));
+        let dernier_periode= DernierePeriode::new(workflows.total(), estimation);
+        let rapport = RapportWorfkows::new(dernier_periode,cents_dernier);
 
-        let estimation = Estimations {
-            echange_reseaux: Mb(general.taille_repository.0 * finished_workflows.len() as f32)
-        };
-
-        let dernier_periode= DernierePeriode {
-            total: workflows.total(), 
-            estimation
-        };
-
-        let rapport = RapportWorfkows {
-            cent_dernier: cents_dernier,
-            derniere_periode: dernier_periode
-        };
-
-        
-
-        Rapport {
-            general,
-            rapport_workflows: rapport
-        }
+        Rapport::new(general, rapport)
     }
 }

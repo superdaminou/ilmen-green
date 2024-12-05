@@ -7,11 +7,28 @@ pub struct RapportWorfkows {
     pub cent_dernier: CentDernier
     
 }
+impl RapportWorfkows {
+    pub fn new(derniere_periode: DernierePeriode, cent_dernier: CentDernier)  -> RapportWorfkows{
+        RapportWorfkows {
+            derniere_periode,
+            cent_dernier
+        }
+    }
+}
 
 #[derive(Debug, Default, Clone)]
 pub struct DernierePeriode {
     pub total: usize,
     pub estimation: Estimations
+}
+
+impl DernierePeriode {
+    pub fn new(total: usize, estimation: Estimations) -> DernierePeriode {
+        DernierePeriode {
+            total,
+            estimation
+        }
+    }
 }
 
 impl IntoRapport for DernierePeriode {
@@ -46,5 +63,15 @@ impl ToString for StatutWorkflow {
             StatutWorkflow::ECHEC => "Echec",
             StatutWorkflow::AUTRE => "Autre",
         }.to_string()
+    }
+}
+
+impl From<&str> for StatutWorkflow {
+    fn from(value: &str) -> Self {
+        match value {
+            "success" => StatutWorkflow::SUCCES,
+            "failure" => StatutWorkflow::ECHEC,
+            _ => Self::AUTRE
+        }
     }
 }

@@ -16,6 +16,15 @@ pub struct Rapport {
     pub rapport_workflows: RapportWorfkows
 }
 
+impl Rapport {
+    pub fn new(general: General, rapport_workflows: RapportWorfkows) -> Rapport {
+        Rapport {
+            general,
+            rapport_workflows
+        }
+    }
+}
+
 pub trait IntoRapport {
     fn into_rapport(&self) -> String;
 }
